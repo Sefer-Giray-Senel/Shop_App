@@ -11,39 +11,43 @@ using System.Threading.Tasks;
 
 namespace NttProject.Controllers
 {
-    public class ProductsController : Controller
+    [ApiController]
+    [Route("[controller]")]
+    public class UsersController : Controller
     {
         private readonly ILogger<HomeController> _logger;
 
-        public ProductsController(ILogger<HomeController> logger)
+        public UsersController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
 
-        public IActionResult All()
+        [HttpGet("register")]
+        public IActionResult Register()
         {
-            List<Product> list = getFromDb("home");
-            ViewData["List"] = list;
-            return View(list);
+            return View();
+        }
+        [HttpGet("login")]
+        public IActionResult Login()
+        {
+            return View();
         }
 
-        public IActionResult Electronics()
+        [HttpPost("register")]
+        public ActionResult<User> RegisterUser([FromForm]User user)
         {
-            List<Product> list = getFromDb("electronics");
-            ViewData["List"] = list;
-            return View(list);
-        }
-        public IActionResult Clothing()
-        {
-            List<Product> list = getFromDb("clothing");
-            ViewData["List"] = list;
-            return View(list);
-        }
-        public IActionResult Furniture()
-        {
-            List<Product> list = getFromDb("furniture");
-            ViewData["List"] = list;
-            return View(list);
+            SqlConnection myConnection = new SqlConnection(@"Data Source = (localdb)\MSSQLLocalDB; Initial Catalog = product_app; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False");
+
+            SqlCommand sqlCmd = new SqlCommand();
+            sqlCmd.CommandType = CommandType.Text;
+            
+            sqlCmd.CommandText = $"INSERT INTO [dbo].[users](Name, Password) VALUES ( '{user.Username}' , '{user.Password}' );";
+
+            sqlCmd.Connection = myConnection;
+            myConnection.Open();
+            SqlDataReader reader = sqlCmd.ExecuteReader();
+            myConnection.Close();
+            return user;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
