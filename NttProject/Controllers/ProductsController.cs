@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NttProject.Models;
 using System;
@@ -39,6 +40,8 @@ namespace NttProject.Controllers
             ViewData["List"] = list;
             return View(list);
         }
+
+        [Authorize]
         public IActionResult Furniture()
         {
             List<Product> list = getFromDb("furniture");
