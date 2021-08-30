@@ -51,8 +51,14 @@
                     </ul>
 
 					
-					<div id="hideDiv">
-					    <li class="navbar-nav">
+					<div style="overflow:hidden" id="hideDiv">
+						<li class="navbar-nav" style="float: left">
+							<a class="nav-link text-dark" asp-area="" asp-controller="Language" asp-action="English">English</a>
+						</li>
+						<li class="navbar-nav" style="float: left">
+							<a class="nav-link text-dark" asp-area="" asp-controller="Language" asp-action="Turkish">Türkçe</a>
+						</li>
+					    <li class="navbar-nav" style="float: left">
 						    <a class="nav-link text-dark" asp-area="" asp-controller="Users" asp-action="Logout">Logout<!--from <p id="name"></p>--></a>
 					    </li>
 					</div>

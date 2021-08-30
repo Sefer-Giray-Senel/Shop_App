@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NttProject.Data;
 using NttProject.Models;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,6 @@ namespace NttProject.Controllers
             return View(list);
         }
 
-        [Authorize]
         public IActionResult Furniture()
         {
             List<Product> list = getFromDb("furniture");
@@ -65,18 +65,20 @@ namespace NttProject.Controllers
             switch (type)
             {
                 case "electronics":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='electronics';";
+                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='electronics' AND";
                     break;
                 case "clothing":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='clothing';";
+                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='clothing' AND";
                     break;
                 case "furniture":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='furniture';";
+                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='furniture' AND";
                     break;
                 default:
-                    sqlCmd.CommandText = "Select * from [dbo].[products];";
+                    sqlCmd.CommandText = "Select * from [dbo].[products] Where";
                     break;
             }
+
+            sqlCmd.CommandText = string.Concat(sqlCmd.CommandText, $" language='{LanguageRepo.Language}';");
             sqlCmd.Connection = myConnection;
             myConnection.Open();
             reader = sqlCmd.ExecuteReader();
