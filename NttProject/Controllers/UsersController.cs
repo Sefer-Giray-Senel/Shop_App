@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using NttProject.Data;
 using NttProject.Dtos;
 using NttProject.Models;
 using System;
@@ -20,9 +21,9 @@ namespace NttProject.Controllers
     [Route("[controller]")]
     public class UsersController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(ILogger<HomeController> logger)
+        public UsersController(ILogger<UsersController> logger)
         {
             _logger = logger;
         }
@@ -32,11 +33,45 @@ namespace NttProject.Controllers
         {
             return View();
         }
+
         [HttpGet("login")]
         public IActionResult Login()
         {
             return View();
         }
+
+        [HttpGet("logout")]
+        public void Logout()
+        {
+            if (UserRepo.LoggedUser != null)
+            {
+                UserRepo.logout();
+                Response.Redirect("/");
+            }
+            else
+                Response.Redirect("/users/NoUser");
+        }
+
+        [HttpGet("NoUser")]
+        public IActionResult NoUser()
+        {
+            return BadRequest("No user logged in.");
+        }
+
+        /*
+        public PartialViewResult _partial()
+        {
+            User user = null;
+            if (userRepo.LoggedUser != null)
+            {
+                Console.Write("asdfgh");
+                user = new User();
+                user.Username = userRepo.LoggedUser.Username;
+            }
+            
+            return PartialView("_Layout", user);
+        }
+        */
 
         [HttpPost("register")]
         public ActionResult<UserDto> RegisterUser([FromForm]User user)
@@ -61,6 +96,7 @@ namespace NttProject.Controllers
                 Token = getToken(user),
             };
 
+            UserRepo.login(userDto);
             return userDto;
         }
 
@@ -77,65 +113,35 @@ namespace NttProject.Controllers
             sqlCmd.Connection = myConnection;
             myConnection.Open();
             SqlDataReader reader = sqlCmd.ExecuteReader();
+
+            UserDto userDto = null;
+
             if (reader.Read())
             {
-                UserDto userDto = new UserDto
+                userDto = new UserDto
                 {
                     Username = user.Username,
                     Token = getToken(user),
                 };
-                Response.Redirect("/");
-                return userDto;
+
+                UserRepo.login(userDto);
+
             }
 
             myConnection.Close();
 
-            return BadRequest("Wrong username or password");            
+            Response.Redirect("/");
+
+            if (userDto == null)
+                return BadRequest("Wrong username or password");
+            else
+                return userDto;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
-
-        private List<Product> getFromDb(string type)
-        {
-            SqlDataReader reader = null;
-            SqlConnection myConnection = new SqlConnection(@"Data Source = (localdb)\MSSQLLocalDB; Initial Catalog = product_app; Integrated Security = True; Connect Timeout = 30; Encrypt = False; TrustServerCertificate = False; ApplicationIntent = ReadWrite; MultiSubnetFailover = False");
-
-            SqlCommand sqlCmd = new SqlCommand();
-            sqlCmd.CommandType = CommandType.Text;
-            switch (type)
-            {
-                case "electronics":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='electronics';";
-                    break;
-                case "clothing":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='clothing';";
-                    break;
-                case "furniture":
-                    sqlCmd.CommandText = "Select * from [dbo].[products] Where category='furniture';";
-                    break;
-                default:
-                    sqlCmd.CommandText = "Select * from [dbo].[products];";
-                    break;
-            }
-            sqlCmd.Connection = myConnection;
-            myConnection.Open();
-            reader = sqlCmd.ExecuteReader();
-            List<Product> list = new List<Product>();
-            Product prod = null;
-            while (reader.Read())
-            {
-                prod = new Product();
-                prod.Id = Convert.ToInt32(reader.GetValue(0));
-                prod.Name = reader.GetValue(1).ToString();
-                prod.Category = reader.GetValue(2).ToString();
-                list.Add(prod);
-            }
-            myConnection.Close();
-            return list;
         }
 
         private string getToken(User user)
