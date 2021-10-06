@@ -46,16 +46,22 @@ namespace NttProject.Controllers
             if (UserRepo.LoggedUser != null)
             {
                 UserRepo.logout();
-                Response.Redirect("/");
+                Response.Redirect("/users/LoggedOut");
             }
             else
                 Response.Redirect("/users/NoUser");
         }
 
+        [HttpGet("LoggedOut")]
+        public IActionResult LoggedOut()
+        {
+            return View();
+        }
+
         [HttpGet("NoUser")]
         public IActionResult NoUser()
         {
-            return BadRequest("No user logged in.");
+            return View();
         }
 
         /*
